@@ -58,7 +58,7 @@
       "apiVersion": "2015-05-01-preview",
       "name": "loadBalancer",
       "type": "Microsoft.Network/loadBalancers",
-      "location": "[parameters('location')]",
+      "location": "[resourceGroup().location]",
       "dependsOn": [
         "Microsoft.Network/publicIPAddresses/publicIp"
       ],
