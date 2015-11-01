@@ -2,6 +2,11 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
+    "instanceCount":
+    {
+      "type":"int",
+      "defaultValue":"4"
+    },
     "adminUsername": {
       "type": "string",
       "defaultValue": "scaleadmin",
@@ -52,7 +57,7 @@
       "frontend": "[concat(variables('storageAccountNamePrefix'), 'sd')]"
     },
     "instanceCount": {
-      "frontend": 1
+      "frontend": "[parameters('instanceCount')]"
     },
     "math": {
       "modulo2": [ "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1" ],
