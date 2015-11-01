@@ -45,6 +45,13 @@
       "metadata": {
         "description": "Unique public DNS prefix for the deployment. The fqdn will look something like '<dnsname>.westus.cloudapp.azure.com'. Up to 62 chars, digits or dashes, lowercase, should start with a letter: must conform to '^[a-z][a-z0-9-]{1,61}[a-z0-9]$'."
       }
+    },
+    "availabilitySetName": {
+      "type": "string",
+      "metadata": {
+        "description": "The Available Set Name"
+      },
+      "defaultValue": "SDAvailability Set"
     }
   },
   "variables": {
@@ -59,6 +66,7 @@
     "instanceCount": {
       "frontend": "[parameters('instanceCount')]"
     },
+    "publicIPAddressName": "[concat(parameters('availabilitySetName'), 'PublicIp')]",
     "math": {
       "modulo2": [ "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1" ],
       "modulo3": [ "0", "1", "2", "0", "1", "2", "0", "1", "2", "0", "1", "2", "0", "1", "2", "0", "1", "2", "0", "1", "2", "0", "1", "2", "0", "1", "2", "0", "1", "2", "0", "1", "2", "0", "1", "2" ]
@@ -83,7 +91,7 @@
       "type": "Microsoft.Network/loadBalancers",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "Microsoft.Network/publicIPAddresses/publicIp"
+        "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]"
       ],
       "properties": {
         "frontendIPConfigurations": [
@@ -138,7 +146,7 @@
       "type": "Microsoft.Compute/availabilitySets",
       "apiVersion": "2015-05-01-preview",
       "location": "[resourceGroup().location]",
-      "name": "availabilityset-sd",
+      "name": "[parameters('availabilitySetName')",
       "tags": { "displayName": "Availability Set" }
     },
 
@@ -153,8 +161,8 @@
         "count": "[variables('instanceCount').frontend]"
       },
       "dependsOn": [
-        "[concat('Microsoft.Network/virtualNetworks/', variables('vnetname'))]"/*,
-        "Microsoft.Network/loadBalancers/loadBalancer"  */
+        "[concat('Microsoft.Network/virtualNetworks/', variables('vnetname'))]",
+        "Microsoft.Network/loadBalancers/loadBalancer"  
       ],
       "properties": {
         "ipConfigurations": [
@@ -165,8 +173,7 @@
               "privateIPAddress": "[concat('10.0.0.', copyIndex(10))]",
               "subnet": {
                 "id": "[concat(resourceId('Microsoft.Network/virtualNetworks',variables('vnetname')), '/subnets/', 'subnet-sd')]"
-              }
-              /*,
+              },
               "loadBalancerBackendAddressPools": [
                 {
                   "id": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/backendAddressPools/LBBAP')]"
@@ -176,7 +183,7 @@
                 {
                   "id": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/inboundNatRules/rdp')]"
                 }
-              ]*/
+              ]
             }
           }
         ]
@@ -195,32 +202,12 @@
       "dependsOn": [
         "[concat('Microsoft.Compute/availabilitySets/', 'availabilityset-sd')]",
         "[concat('Microsoft.Storage/storageAccounts/', concat(variables('storageAccountNames').frontend, variables('math').modulo2[copyIndex()]))]",
-        "[concat('Microsoft.Network/networkInterfaces/', concat('nic-sd-', copyIndex()))]"
+        "[concat('Microsoft.Network/networkInterfaces/', concat('nic-sd-', copyIndex()))]",
+        "[resourceId('Microsoft.Network/loadBalancers', 'loadBalancer')]"
       ],
       "properties": {
         "hardwareProfile": { "vmSize": "Standard_A0" },
-        "networkProfile": { 
-          "networkInterfaces": [ 
-            { "id": "[resourceId('Microsoft.Network/networkInterfaces', concat('nic-sd-', copyIndex()))]" } ],
-             
-             "inputEndpoints": [
-            {
-              "endpointName": "Remote Desktop",
-              "publicIpAddress": "[resourceId('Microsoft.Network/publicIPAddresses','publicIp')]",
-              "privatePort": "[parameters('rdpPort')]",
-              "publicPort": 3389,
-              "protocol": "tcp",
-              "enableDirectServerReturn": false
-            },
-            {
-              "endpointName": "WinRM",
-              "publicIpAddress": "[resourceId('Microsoft.Network/publicIPAddresses','publicIp')]",
-              "privatePort": 5986,
-              "publicPort": 5986,
-              "protocol": "tcp",
-              "enableDirectServerReturn": false
-            }
-          ]},
+        "networkProfile": { "networkInterfaces": [ { "id": "[resourceId('Microsoft.Network/networkInterfaces', concat('nic-sd-', copyIndex()))]" } ] },
         "availabilitySet": { "id": "[resourceId('Microsoft.Compute/availabilitySets', 'availabilityset-sd')]" },
         "osProfile": {
           "computerName": "[concat('sd-', copyIndex())]",
