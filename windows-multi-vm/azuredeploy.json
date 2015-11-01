@@ -153,8 +153,8 @@
         "count": "[variables('instanceCount').frontend]"
       },
       "dependsOn": [
-        "[concat('Microsoft.Network/virtualNetworks/', variables('vnetname'))]",
-        "Microsoft.Network/loadBalancers/loadBalancer"  
+        "[concat('Microsoft.Network/virtualNetworks/', variables('vnetname'))]"/*,
+        "Microsoft.Network/loadBalancers/loadBalancer"  */
       ],
       "properties": {
         "ipConfigurations": [
@@ -165,7 +165,8 @@
               "privateIPAddress": "[concat('10.0.0.', copyIndex(10))]",
               "subnet": {
                 "id": "[concat(resourceId('Microsoft.Network/virtualNetworks',variables('vnetname')), '/subnets/', 'subnet-sd')]"
-              },
+              }
+              /*,
               "loadBalancerBackendAddressPools": [
                 {
                   "id": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/backendAddressPools/LBBAP')]"
@@ -175,7 +176,7 @@
                 {
                   "id": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/inboundNatRules/rdp')]"
                 }
-              ]
+              ]*/
             }
           }
         ]
@@ -198,7 +199,28 @@
       ],
       "properties": {
         "hardwareProfile": { "vmSize": "Standard_A0" },
-        "networkProfile": { "networkInterfaces": [ { "id": "[resourceId('Microsoft.Network/networkInterfaces', concat('nic-sd-', copyIndex()))]" } ] },
+        "networkProfile": { 
+          "networkInterfaces": [ 
+            { "id": "[resourceId('Microsoft.Network/networkInterfaces', concat('nic-sd-', copyIndex()))]" } ],
+             
+             "inputEndpoints": [
+            {
+              "endpointName": "Remote Desktop",
+              "publicIpAddress": "[resourceId('Microsoft.Network/publicIPAddresses','publicIp')]",
+              "privatePort": "[parameters('rdpPort')]",
+              "publicPort": 3389,
+              "protocol": "tcp",
+              "enableDirectServerReturn": false
+            },
+            {
+              "endpointName": "WinRM",
+              "publicIpAddress": "[resourceId('Microsoft.Network/publicIPAddresses','publicIp')]",
+              "privatePort": 5986,
+              "publicPort": 5986,
+              "protocol": "tcp",
+              "enableDirectServerReturn": false
+            }
+          ]},
         "availabilitySet": { "id": "[resourceId('Microsoft.Compute/availabilitySets', 'availabilityset-sd')]" },
         "osProfile": {
           "computerName": "[concat('sd-', copyIndex())]",
