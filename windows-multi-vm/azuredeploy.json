@@ -51,7 +51,7 @@
       "metadata": {
         "description": "The Available Set Name"
       },
-      "defaultValue": "SDAvailability Set"
+      "defaultValue": "SDAvailabilitySet"
     }
   },
   "variables": {
@@ -85,46 +85,6 @@
         }
       }
     },
-{
-      "apiVersion": "2015-05-01-preview",
-      "name": "loadBalancer",
-      "type": "Microsoft.Network/loadBalancers",
-      "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]"
-      ],
-      "properties": {
-        "frontendIPConfigurations": [
-          {
-            "name": "LBFE",
-            "properties": {
-              "publicIPAddress": {
-                "id": "[resourceId('Microsoft.Network/publicIPAddresses','publicIp')]"
-              }
-            }
-          }
-        ],
-        "backendAddressPools": [
-          {
-            "name": "LBBAP"
-          }
-        ],
-        "inboundNatRules": [
-          {
-            "name": "rdp",
-            "properties": {
-              "frontendIPConfiguration": {
-                "id": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/frontendIPConfigurations/LBFE')]"
-              },
-              "protocol": "tcp",
-              "frontendPort": "[parameters('rdpPort')]",
-              "backendPort": 3389,
-              "enableFloatingIP": false
-            }
-          }
-        ]
-      }
-    },
     {
       "type": "Microsoft.Network/virtualNetworks",
       "apiVersion": "2015-05-01-preview",
@@ -141,7 +101,6 @@
         ]
       }
     },
-
     {
       "type": "Microsoft.Compute/availabilitySets",
       "apiVersion": "2015-05-01-preview",
@@ -161,8 +120,7 @@
         "count": "[variables('instanceCount').frontend]"
       },
       "dependsOn": [
-        "[concat('Microsoft.Network/virtualNetworks/', variables('vnetname'))]",
-        "Microsoft.Network/loadBalancers/loadBalancer"  
+        "[concat('Microsoft.Network/virtualNetworks/', variables('vnetname'))]"
       ],
       "properties": {
         "ipConfigurations": [
@@ -173,17 +131,7 @@
               "privateIPAddress": "[concat('10.0.0.', copyIndex(10))]",
               "subnet": {
                 "id": "[concat(resourceId('Microsoft.Network/virtualNetworks',variables('vnetname')), '/subnets/', 'subnet-sd')]"
-              },
-              "loadBalancerBackendAddressPools": [
-                {
-                  "id": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/backendAddressPools/LBBAP')]"
-                }
-              ],
-              "loadBalancerInboundNatRules": [
-                {
-                  "id": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/inboundNatRules/rdp')]"
-                }
-              ]
+              }
             }
           }
         ]
@@ -200,15 +148,14 @@
         "count": "[variables('instanceCount').frontend]"
       },
       "dependsOn": [
-        "[concat('Microsoft.Compute/availabilitySets/', '[parameters('availabilitySetName')]')]",
+        "[concat('Microsoft.Compute/availabilitySets/', parameters('availabilitySetName'))]",
         "[concat('Microsoft.Storage/storageAccounts/', concat(variables('storageAccountNames').frontend, variables('math').modulo2[copyIndex()]))]",
-        "[concat('Microsoft.Network/networkInterfaces/', concat('nic-sd-', copyIndex()))]",
-        "[resourceId('Microsoft.Network/loadBalancers', 'loadBalancer')]"
+        "[concat('Microsoft.Network/networkInterfaces/', concat('nic-sd-', copyIndex()))]"
       ],
       "properties": {
         "hardwareProfile": { "vmSize": "Standard_A0" },
         "networkProfile": { "networkInterfaces": [ { "id": "[resourceId('Microsoft.Network/networkInterfaces', concat('nic-sd-', copyIndex()))]" } ] },
-        "availabilitySet": { "id": "[resourceId('Microsoft.Compute/availabilitySets', '[parameters('availabilitySetName')]')]" },
+        "availabilitySet": { "id": "[resourceId('Microsoft.Compute/availabilitySets', parameters('availabilitySetName'))]" },
         "osProfile": {
           "computerName": "[concat('sd-', copyIndex())]",
           "adminUsername": "[parameters('adminUsername')]",
