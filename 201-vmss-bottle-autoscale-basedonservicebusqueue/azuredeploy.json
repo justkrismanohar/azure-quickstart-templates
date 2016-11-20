@@ -4,7 +4,7 @@
   "parameters": {
     "vmSku": {
       "type": "string",
-      "defaultValue": "Standard_A1",
+      "defaultValue": "Standard_D1",
       "metadata": {
         "description": "Size of VMs in the VM Scale Set."
       }
@@ -300,9 +300,9 @@
             "rules": [
               {
                 "metricTrigger": {
-                  "metricName": "ApproximateMessageCount",
+                  "metricName": "MessageCount",
                   "metricNamespace": "",
-                  "metricResourceUri": "/subscriptions/2f1aceda-05c5-4e53-857c-b7b248868a29/resourceGroups/sbTest/providers/Microsoft.Resources/deployments/Microsoft.ServiceBus/namespaces/test806003586/queues/testqueue",
+                  "metricResourceUri": "/subscriptions/2f1aceda-05c5-4e53-857c-b7b248868a29/resourceGroups/sbTest/providers/Microsoft.ServiceBus/namespaces/test806003586/queues/testqueue",
                   "timeGrain": "PT1M",
                   "statistic": "Average",
                   "timeWindow": "PT5M",
@@ -319,15 +319,15 @@
               },
               {
                 "metricTrigger": {
-                  "metricName": "ApproximateMessageCount",
+                  "metricName": "MessageCount",
                   "metricNamespace": "",
-                  "metricResourceUri": "/subscriptions/2f1aceda-05c5-4e53-857c-b7b248868a29/resourceGroups/sbTest/providers/Microsoft.Resources/deployments/Microsoft.ServiceBus/namespaces/test806003586/queues/testqueue",
+                  "metricResourceUri": "/subscriptions/2f1aceda-05c5-4e53-857c-b7b248868a29/resourceGroups/sbTest/providers/Microsoft.ServiceBus/namespaces/test806003586/queues/testqueue",
                   "timeGrain": "PT1M",
                   "statistic": "Average",
                   "timeWindow": "PT5M",
                   "timeAggregation": "Average",
                   "operator": "LessThan",
-                  "threshold": 10
+                  "threshold": 5
                 },
                 "scaleAction": {
                   "direction": "Decrease",
